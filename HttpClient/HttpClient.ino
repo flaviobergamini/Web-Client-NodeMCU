@@ -14,28 +14,13 @@ WiFiClient client;
 //-------------------------------------------------------------------------------------------------------------------------
 const char *ssid_new;
 const char *password_new;
-const char *ssid      = "REP MIXTO QUENTE";
-const char *password  = "advinha32";
+const char *ssid      = "REP MIXTO QUENTE";              //SSID inicialmente com rede padrão
+const char *password  = "advinha32";                     //Password inicialmente com rede padrão
 int port = 80;
-String serverAddress_http = "http://10.0.0.108";
-String serverAddress = "10.0.0.108";
+String serverAddress_http = "http://10.0.0.108";        //Endereço do servidor pelo protocolo HTTP
 int set_command = 1;
 
-String autoRegisterUsername = "iPhone Bergamini";
-String autoRegisterPassword = "12345678";
-const int ssidAddress[] = {0, 40};
-const int wiFipasswordAddress[] = {40, 80};
-const int isWiFiConfigured[] = {80, 120};
-const int deviceUsernameAddress[] = {120, 160};
-const int devicePasswordAddress[] = {160, 200};
-const int isAutoRegisterNeeded[] = {200, 240};
 
-String jwt;
-String wiFiConfigured;
-String autoRegisterNecessary;
-
-//String user
-boolean isLoginNeeded = true;
 
 //-------------------------------------------------------------------------------------------------------------------------
 void standard_connect()
@@ -43,7 +28,7 @@ void standard_connect()
    for (uint8_t t = 4; t > 0; t--) {
     Serial.printf("[SETUP] WAIT %d...\n", t);
     Serial.flush();
-    delay(1000);
+    delay(800);
   }
 
   WiFi.mode(WIFI_STA);
@@ -99,23 +84,37 @@ void setup_connect()
           standard_connect();
           delay(1000);
           if ((WiFi.status() == WL_CONNECTED)) {
-            int loop = 1;
-            while(loop)
-            {
+            int loop1 = 1;
+            int loop2 = 1;
+            Serial.println("Apagando buffer da EEPROM\n");
+            eraseEEPROM();
+            Serial.println("Escrevendo na EEPROM\n");
+            WriteEEPROM(ssid, password);
+
+            while(loop1)
+            { //Desenvolver a logica necessária para a aplicação
               Serial.println("Conectado na rede definitiva\n");
+              digitalWrite(D1,LOW);
+              digitalWrite(D0,HIGH);
+              digitalWrite(D4,LOW);
               delay(1000);
-              //Liga Green LED
-              //Desliga Red LED
-              //grava dados na EEPROM
+              while(loop2 != 1)
+              {
+                ReadEEPROM(ssid, password);
+                loop2 = 2;
+              }
               if ((WiFi.status() == WL_CONNECTED))
-                loop = 1;
+                loop1 = 1;
               else
-                loop = 0;
+                loop1 = 0;
             }
           }
            else
           {
             Serial.println("Nao foi possivel conectar na rede definitiva\n");
+            digitalWrite(D1,HIGH);
+            digitalWrite(D0,LOW);
+            digitalWrite(D4,LOW);
             standard_connect();
             setup_connect();
             //Liga Red LED
@@ -129,7 +128,14 @@ void setup_connect()
 void setup() {
 
   Serial.begin(115200);
+  EEPROM.begin(1024);
   standard_connect();
+  pinMode(D1, OUTPUT);
+  pinMode(D0, OUTPUT);
+  pinMode(D4, OUTPUT);
+  digitalWrite(D0,LOW);
+  digitalWrite(D1,LOW);
+  digitalWrite(D4,LOW);
   
 }
 
@@ -138,57 +144,68 @@ void loop() {
   //if ((WiFiMulti.run() == WL_CONNECTED)) {
   setup_connect();
 }
-/*
-void definitive_network(const char* ssid_new, const char* psk_new)
-{
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid_new, psk_new);
-  if ((WiFi.status() == WL_CONNECTED)) {
-    while(1){
-      Serial.println("Conectado na rede definitiva\n");
-      delay(1000);
-      //Liga Green LED
-      //Desliga Red LED
-    }
-  }
-  else
-  {
-    Serial.println("Nao foi possivel conectar na rede definitiva\n");
-    delay(100);
-    standard_connect();
-    setup_connect();
-    //Liga Red LED
-    //Desliga Green LED
-  }
-} */
-void eraseEEPROM() {
 
-  EEPROM.begin(512);
-  // write a 0 to all 512 bytes of the EEPROM
-  for (int i = 0; i < 512; i++) {
+void eraseEEPROM() {
+  
+  for (int i = 0; i < 1024; i++) {
     EEPROM.write(i, 0);
   }
 
   // turn the LED on when we're done
-  pinMode(13, OUTPUT);
-  digitalWrite(13, HIGH);
+  pinMode(D4, OUTPUT);
+  digitalWrite(D4, HIGH);
   EEPROM.end();
 }
 
-void EEPROM_ESP8266_GRABAR(String buffer, int N) {
-  EEPROM.begin(512); delay(10);
-  for (int L = 0; L < 40; ++L) {
-    EEPROM.write(N + L, buffer[L]);
-  }
-  EEPROM.commit();
+void WriteEEPROM(String ssid, String password)
+{
+  int ssidlen = ssid.length();
+  int passlen = password.length();
+ 
+  Serial.println("writing eeprom ssid:");
+          for (int i = 0; i < ssidlen; ++i)
+            {
+              EEPROM.write(i, ssid[i]);
+              Serial.print("Wrote: ");
+              Serial.println(ssid[i]); 
+            }
+
+  Serial.println("writing eeprom password:");
+          for (int i = 0; i < passlen; ++i)
+            {
+              EEPROM.write((i+ssidlen), password[i]);
+              Serial.print("Wrote: ");
+              Serial.println(password[i]); 
+            }
+
 }
 
-//
-String EEPROM_ESP8266_LEER(int min, int max) {
-  EEPROM.begin(512); delay(10); String buffer;
-  for (int L = min; L < max; ++L){
-    //if (isAlphaNumeric(EEPROM.read(L)))
-      buffer += char(EEPROM.read(L));
+void ReadEEPROM(String ssid, String password)
+{
+  int ssidlen = ssid.length();
+  int passlen = password.length();
+
+  Serial.println("Reading EEPROM ssid");
+  String esid;
+  for (int i = 0; i < ssidlen; ++i)
+    {
+      esid += char(EEPROM.read(i));
+    }
+    //esid.trim();
+  Serial.println(esid.length());
+  Serial.print("SSID saida: ");
+  Serial.println(esid);
+  
+  Serial.println("\n");
+  
+  Serial.println("Lendo password EEPROM");
+  String passq;
+  for (int i = (ssidlen); i < (ssidlen+passlen); ++i)
+  {
+    passq +=char(EEPROM.read(i));
   }
-  return buffer;
+  Serial.println("Tamanho da password: ");
+  Serial.println(passq.length());
+  Serial.println("Password saida: ");
+  Serial.println(passq);
 }
