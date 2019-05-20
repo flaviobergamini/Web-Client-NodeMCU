@@ -98,7 +98,7 @@ void setup_connect()
               digitalWrite(D0,HIGH);
               digitalWrite(D4,LOW);
               delay(1000);
-              while(loop2 != 1)
+              while(loop2 == 1)
               {
                 ReadEEPROM(ssid, password);
                 loop2 = 2;
@@ -130,11 +130,13 @@ void setup() {
   Serial.begin(115200);
   EEPROM.begin(1024);
   standard_connect();
-  pinMode(D1, OUTPUT);
   pinMode(D0, OUTPUT);
+  pinMode(D1, OUTPUT);
+  pinMode(D3, OUTPUT);
   pinMode(D4, OUTPUT);
   digitalWrite(D0,LOW);
   digitalWrite(D1,LOW);
+  digitalWrite(D3,LOW);
   digitalWrite(D4,LOW);
   
 }
@@ -146,7 +148,7 @@ void loop() {
 }
 
 void eraseEEPROM() {
-  
+  EEPROM.begin(1024);
   for (int i = 0; i < 1024; i++) {
     EEPROM.write(i, 0);
   }
@@ -159,6 +161,7 @@ void eraseEEPROM() {
 
 void WriteEEPROM(String ssid, String password)
 {
+  EEPROM.begin(1024);
   int ssidlen = ssid.length();
   int passlen = password.length();
  
@@ -177,11 +180,12 @@ void WriteEEPROM(String ssid, String password)
               Serial.print("Wrote: ");
               Serial.println(password[i]); 
             }
-
+  EEPROM.end();
 }
 
 void ReadEEPROM(String ssid, String password)
 {
+  EEPROM.begin(1024);
   int ssidlen = ssid.length();
   int passlen = password.length();
 
@@ -208,4 +212,5 @@ void ReadEEPROM(String ssid, String password)
   Serial.println(passq.length());
   Serial.println("Password saida: ");
   Serial.println(passq);
+  EEPROM.end();
 }
