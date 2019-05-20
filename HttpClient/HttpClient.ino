@@ -23,6 +23,18 @@ int set_command = 1;
 
 
 //-------------------------------------------------------------------------------------------------------------------------
+void logica()   //Desenvolver a logica necessária para a aplicação
+{
+  for(int i = 0; i < 5; i ++)
+  {
+    digitalWrite(D3, HIGH);
+    delay(200);
+    digitalWrite(D3, LOW);
+    delay(200);
+  }
+  
+}
+
 void standard_connect()
 {
    for (uint8_t t = 4; t > 0; t--) {
@@ -87,12 +99,13 @@ void setup_connect()
             int loop1 = 1;
             int loop2 = 1;
             Serial.println("Apagando buffer da EEPROM\n");
-            eraseEEPROM();
+            //eraseEEPROM();
             Serial.println("Escrevendo na EEPROM\n");
             WriteEEPROM(ssid, password);
 
             while(loop1)
-            { //Desenvolver a logica necessária para a aplicação
+            { 
+               logica();     //Desenvolver a logica necessária para a aplicação
               Serial.println("Conectado na rede definitiva\n");
               digitalWrite(D1,LOW);
               digitalWrite(D0,HIGH);
