@@ -25,7 +25,7 @@ int set_command = 1;
 //-------------------------------------------------------------------------------------------------------------------------
 void logica()   //Desenvolver a logica necessária para a aplicação
 {
-  for(int i = 0; i < 5; i ++)
+  while(1)
   {
     digitalWrite(D3, HIGH);
     delay(200);
@@ -102,20 +102,19 @@ void setup_connect()
             //eraseEEPROM();
             Serial.println("Escrevendo na EEPROM\n");
             WriteEEPROM(ssid, password);
-
+            Serial.println("Conectado na rede definitiva\n");
+            digitalWrite(D1,LOW);
+            digitalWrite(D0,HIGH);
+            digitalWrite(D4,LOW);
+            while(loop2 == 1)
+            {
+                ReadEEPROM(ssid, password);
+                loop2 = 2;
+            }
             while(loop1)
             { 
                logica();     //Desenvolver a logica necessária para a aplicação
-              Serial.println("Conectado na rede definitiva\n");
-              digitalWrite(D1,LOW);
-              digitalWrite(D0,HIGH);
-              digitalWrite(D4,LOW);
-              delay(1000);
-              while(loop2 == 1)
-              {
-                ReadEEPROM(ssid, password);
-                loop2 = 2;
-              }
+           
               if ((WiFi.status() == WL_CONNECTED))
                 loop1 = 1;
               else
@@ -142,15 +141,32 @@ void setup() {
 
   Serial.begin(115200);
   EEPROM.begin(1024);
-  standard_connect();
   pinMode(D0, OUTPUT);
   pinMode(D1, OUTPUT);
   pinMode(D3, OUTPUT);
-  pinMode(D4, OUTPUT);
+  pinMode(D7, INPUT);
   digitalWrite(D0,LOW);
   digitalWrite(D1,LOW);
   digitalWrite(D3,LOW);
-  digitalWrite(D4,LOW);
+  if(digitalRead(D7) == LOW)
+    eraseEEPROM();
+  byte value = EEPROM.read(0);
+  EEPROM.end();
+  if(value == 0)
+  {
+    Serial.print("Value = 0");
+    delay(500);
+    standard_connect();
+    while(1){
+      setup_connect();
+    }
+  }
+   else{
+     Serial.print("Value diferente 0");
+     delay(500);
+     ReadEEPROM(ssid, password);
+     logica();
+   }
   
 }
 
@@ -165,10 +181,6 @@ void eraseEEPROM() {
   for (int i = 0; i < 1024; i++) {
     EEPROM.write(i, 0);
   }
-
-  // turn the LED on when we're done
-  pinMode(D4, OUTPUT);
-  digitalWrite(D4, HIGH);
   EEPROM.end();
 }
 
