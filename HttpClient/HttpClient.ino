@@ -17,7 +17,7 @@ const char *password_new;
 const char *ssid      = "REP MIXTO QUENTE";              //SSID inicialmente com rede padrão
 const char *password  = "advinha32";                     //Password inicialmente com rede padrão
 int port = 80;
-String serverAddress_http = "http://10.0.0.108";        //Endereço do servidor pelo protocolo HTTP
+String serverAddress_http = "http://10.0.0.112";        //Endereço do servidor pelo protocolo HTTP
 int set_command = 1;
 
 
@@ -25,14 +25,10 @@ int set_command = 1;
 //-------------------------------------------------------------------------------------------------------------------------
 void logica()   //Desenvolver a logica necessária para a aplicação
 {
-  while(1)
-  {
-    digitalWrite(D3, HIGH);
-    delay(200);
-    digitalWrite(D3, LOW);
-    delay(200);
-  }
-  
+  digitalWrite(D3, HIGH);
+  delay(200);
+  digitalWrite(D3, LOW);
+  delay(200);
 }
 
 void standard_connect()
@@ -164,10 +160,11 @@ void setup() {
    else{
      Serial.print("Value diferente 0");
      delay(500);
+     int loop1 = 1;
      ReadEEPROM(ssid, password);
-     logica();
-   }
-  
+     set_command = 2;
+     setup_connect();
+    }
 }
 
 void loop() {
